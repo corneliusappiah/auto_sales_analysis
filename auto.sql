@@ -68,7 +68,94 @@ set Month=monthname(ORDERDATE);
 select * from auto1;
 select DEALSIZE from auto1
 where DEALSIZE is null or DEALSIZE='';
+alter table auto1
+drop column row_num;
 ## Exploratory Analysis
+# What is the Total Sales made 
+select concat(round(sum(SALES),2),'$') as Total_Sales from auto1;
+##------------------------------------------------------------------------------------------------------------------------------------------
+## calculate the  Average Sales
+select concat(round(Avg(SALES),2),'$') as Total_Sales from auto1;
+#-------------------------------------------------------------------------------------------------------------------------------------------
+# What is the Total Quantity Ordered
+select concat(round(sum(QUANTITYORDERED),2),'$') as Total_QUANTITYORDERED from auto1;
+#•	What are the total sales for each product line over the entire dataset?
+select PRODUCTLINE,round(sum(SALES)) as Total from auto1
+group by PRODUCTLINE
+order by Total desc;
+##-------------------------------------------------------------------------------------------------------------------------------------------
+##•	How do monthly sales figures compare across different product lines?
+select Month,PRODUCTLINE, round(sum(SALES),2)as Total_sales  from auto1
+group by Month,PRODUCTLINE
+order by Month;
+##------------------------------------------------------------------------------------------------------------------------------------------
+##•	What is the average sale amount per order for each product line?
+select PRODUCTLINE,round(avg(SALES),2) as Average_Sales from auto1
+group by PRODUCTLINE;
+##-----------------------------------------------------------------------------------------------------------------------------------------
+#•	What is the average number of orders placed by each customer?
+select CUSTOMERNAME,count(ORDERLINENUMBER),avg(count(ORDERLINENUMBER)) OVER () AS Average_Orders_Per_Customer from auto1
+group by CUSTOMERNAME;
+##------------------------------------------------------------------------------------------------------------------------------------------
+##  How many unique customers purchased each product line?
+select PRODUCTLINE,count(distinct CUSTOMERNAME) as customer_count from auto1
+group by PRODUCTLINE;
+##•	What is the distribution of sales by customer location (country or city)?
+select COUNTRY,round(sum(SALES)) as Total_sale  from auto1
+group by COUNTRY,SALES
+order by SALES desc;
+select CITY,round(sum(SALES))  as Total_sale  from auto1
+group by CITY,SALES
+order by SALES desc;
+##-----------------------------------------------------------------------------------------------------------------------------------------
+##•	How do return rates vary by customer segment or product line?
+select *from auto1;
+select CUSTOMERNAME,count(case when STATUS='Cancelled' then 1 end)as number_order, count(ORDERNUMBER) as Total_order,count(case when STATUS= 'Cancelled' then 1 end)/count(ORDERNUMBER)* 100  as Rutun_rate from auto1
+group by CUSTOMERNAME;
+
+select distinct STATUS from auto1;
+select PRODUCTLINE,count(case when STATUS='Cancelled' then 1 end)as number_order, count(ORDERNUMBER) as Total_order,count(case when STATUS= 'Cancelled' then 1 end)/count(ORDERNUMBER)* 100  as Rutun_rate from auto1
+group by PRODUCTLINE;
+##----------------------------------------------------------------------------------------------------------------------------------------------------
+## •	Which productlines have shown the highest growth in sales over the last year?
+select * from auto1;
+#------------------------------------------------------------------------------------------------------------------------------------------------
+# What are the top 5  productline by quantity sold in product size?
+select PRODUCTLINE,count(PRODUCTLINE) as count from auto1
+where DEALSIZE='Small'
+group by PRODUCTLINE
+order by count desc limit 5;
+
+select PRODUCTLINE,count(PRODUCTLINE) as count from auto1
+where DEALSIZE='Medium'
+group by PRODUCTLINE
+order by count desc limit 5;
+
+select PRODUCTLINE,count(PRODUCTLINE) as count from auto1
+where DEALSIZE='Large'
+group by PRODUCTLINE
+order by count desc limit 5;
+
+##--------------------------------------------------------------------------------------------------------------------------------------------------
+# •	What percentage of total orders were canceled or returned for each product line?
+select PRODUCTLINE,sum(QUANTITYORDERED) as Total_orders from auto1
+group by PRODUCTLINE;
+select PRODUCTLINE,Total_orders,Total_return ,round((Total_return /Total_orders)*100,2)as percent_return
+ from (select PRODUCTLINE as PRODUCTLINE,sum(QUANTITYORDERED) as Total_orders,sum(case when STATUS='Cancelled' then QUANTITYORDERED else 0 end )as Total_return from auto1
+ group by PRODUCTLINE) as Subquery
+ order by percent_return desc;
+ #-------------------------------------------------------------------------------------------------------------------------------------------------
+ #•	How much revenue has been lost due to returns for each product line?
+ select  PRODUCTLINE, STATUS as Return_product,  round(sum(SALES),2) as Total_rev_lost from auto1
+ where STATUS='Cancelled'
+ group by  PRODUCTLINE, STATUS;
+ 
+ 
+ 
+ 
+
+
+
 
 
 
